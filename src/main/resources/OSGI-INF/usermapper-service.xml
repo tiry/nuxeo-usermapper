@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<component name="org.nuxeo.usermapper.service.UserMapperComponent" version="1.0">
+
+  <implementation class="org.nuxeo.usermapper.service.UserMapperComponent" />
+
+  <service>
+      <provide interface="org.nuxeo.usermapper.service.UserMapperService" />
+  </service>
+
+  <extension-point name="mapper">
+    <documentation>
+      Allow to contribute mapper classes
+    </documentation>
+    <object
+      class="org.nuxeo.usermapper.service.UserMapperDescriptor" />
+  </extension-point>
+
+</component>
