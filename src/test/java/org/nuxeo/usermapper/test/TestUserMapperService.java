@@ -1,3 +1,21 @@
+/*
+ * (C) Copyright 2006-2014 Nuxeo SAS (http://nuxeo.com/) and contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser General Public License
+ * (LGPL) version 2.1 which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/lgpl.html
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * Contributors:
+ *     Nuxeo - initial API and implementation
+ *
+ */
+
 package org.nuxeo.usermapper.test;
 
 import junit.framework.Assert;
@@ -16,17 +34,21 @@ import org.nuxeo.usermapper.test.dummy.DummyUser;
 
 @Deploy({ "org.nuxeo.usermapper", "org.nuxeo.ecm.platform.login",
     "org.nuxeo.ecm.platform.login.default"})
-
 @RunWith(FeaturesRunner.class)
 @LocalDeploy("org.nuxeo.usermapper:usermapper-contribs.xml")
 @Features(PlatformFeature.class)
+/**
+ * 
+ * @author tiry
+ *
+ */
 public class TestUserMapperService {
 
     @Test
     public void shouldDeclareService() throws Exception {        
         UserMapperService ums = Framework.getLocalService(UserMapperService.class);
         Assert.assertNotNull(ums);        
-        Assert.assertEquals(1,  ums.getAvailableMappings().size());
+        Assert.assertEquals(2,  ums.getAvailableMappings().size());
     }
 
     @Test
@@ -50,5 +72,19 @@ public class TestUserMapperService {
         Assert.assertEquals("Chan2", principal.getLastName());
         
     }               
-    
+
+    @Test
+    public void testGroovyContrib() throws Exception {
+        
+        // test create
+        DummyUser dm = new DummyUser("bharper","Ben", "Harper");
+        UserMapperService ums = Framework.getLocalService(UserMapperService.class);        
+        NuxeoPrincipal principal = ums.getCreateOrUpdateNuxeoPrincipal("groovyDummy", dm);                
+        Assert.assertNotNull(principal);
+        Assert.assertEquals("bharper", principal.getName());
+        Assert.assertEquals("Ben", principal.getFirstName());
+        Assert.assertEquals("Harper", principal.getLastName());                
+        
+    }               
+
 }
