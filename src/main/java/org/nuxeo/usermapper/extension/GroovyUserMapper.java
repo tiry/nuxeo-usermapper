@@ -32,9 +32,9 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 
 /**
  * Implement the {@link UserMapper} using Groovy Scripting for the mapping part
- * 
+ *
  * @author tiry
- * 
+ *
  */
 public class GroovyUserMapper extends AbstractUserMapper {
 
@@ -46,7 +46,7 @@ public class GroovyUserMapper extends AbstractUserMapper {
 
     public GroovyUserMapper(String script) {
         super();
-        this.scriptSource = script;
+        scriptSource = script;
     }
 
     @Override
@@ -56,11 +56,14 @@ public class GroovyUserMapper extends AbstractUserMapper {
     }
 
     @Override
-    protected void getUserAttributes(Object userObject,
-            Map<String, Serializable> attributes) {
+    protected void resolveAttributes(Object userObject,
+            Map<String, Serializable> searchAttributes,
+            Map<String, Serializable> userAttributes, Map<String, Serializable> profileAttributes) {
 
         Map<String, Object> context = new HashMap<String, Object>();
-        context.put("attributes", attributes);
+        context.put("searchAttributes", searchAttributes);
+        context.put("profileAttributes", profileAttributes);
+        context.put("userAttributes", userAttributes);
         context.put("userObject", userObject);
         Binding binding = new Binding(context);
         Script script = InvokerHelper.createScript(groovyClass, binding);

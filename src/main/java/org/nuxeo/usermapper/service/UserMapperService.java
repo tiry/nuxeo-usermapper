@@ -20,11 +20,12 @@ package org.nuxeo.usermapper.service;
 
 import java.util.Set;
 
-import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 
 /**
- * 
+ * This service allows to map Nuxeo Users with users coming from external system like SSO or IDM.
+ *
  * @author tiry
  *
  */
@@ -33,28 +34,28 @@ public interface UserMapperService {
     /**
      * Should retrieve (create if needed) and update the NuxeoPrincipal
      * according to the given userObject
-     *     
+     *
      * @param mappingName the name of the contributed mapping to use
-     * @param userObject the native userObject 
+     * @param userObject the native userObject
      * @return the matching {@link NuxeoPrincipal}
-     * @throws ClientException
+     * @throws NuxeoException
      */
-    NuxeoPrincipal getCreateOrUpdateNuxeoPrincipal(String mappingName, Object userObject) throws ClientException;
+    NuxeoPrincipal getCreateOrUpdateNuxeoPrincipal(String mappingName, Object userObject) throws NuxeoException;
 
     /**
      * Wrap the {@link NuxeoPrincipal} as the userObject used in the external
      * authentication system
-     *      * 
+     *      *
      * @param mappingName the name of the contributed mapping to use
      * @param principal the {@link NuxeoPrincipal} to wrap
      * @return
-     * @throws ClientException
+     * @throws NuxeoException
      */
-    Object wrapNuxeoPrincipal(String mappingName, NuxeoPrincipal principal) throws ClientException;
-    
+    Object wrapNuxeoPrincipal(String mappingName, NuxeoPrincipal principal) throws NuxeoException;
+
     /**
      * Gives access to the contributed Mapping names
-     * 
+     *
      * @return
      */
     Set<String> getAvailableMappings();

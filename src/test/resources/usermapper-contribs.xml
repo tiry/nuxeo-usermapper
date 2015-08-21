@@ -7,11 +7,22 @@
     <mapper name="javaDummy" class="org.nuxeo.usermapper.test.dummy.DummyUserMapper">
     </mapper>
 
-    <mapper name="groovyDummy">
+    <mapper name="groovyDummy" type="groovy">
       <script>
-          attributes.put("username", userObject.login);
-          attributes.put("firstName", userObject.name.firstName);
-          attributes.put("lastName", userObject.name.lastName);
+          searchAttributes.put("username", userObject.login);
+          userAttributes.put("firstName", userObject.name.firstName);
+          userAttributes.put("lastName", userObject.name.lastName);          
+          profileAttributes.put("userprofile:phonenumber", "555.666.7777");
+      </script>
+    </mapper>
+
+
+    <mapper name="jsDummy" type="js">
+      <script>
+          searchAttributes.put("username", userObject.login);
+          userAttributes.put("firstName", userObject.name.firstName);
+          userAttributes.put("lastName", userObject.name.lastName);
+          profileAttributes.put("userprofile:phonenumber", "555.666.7777");
       </script>
     </mapper>
 

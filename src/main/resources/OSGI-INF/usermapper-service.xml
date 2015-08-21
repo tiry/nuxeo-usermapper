@@ -11,12 +11,12 @@
   <documentation>
     This component expose a service to help mapping NuxeoPrincipal to userObject provided by an external system.
     
-    The mapping itself is contribuable using an extension point.
+    The mapping itself is configurable using an extension point.
     
     Typical use cases include :
     
     <ul>
-      <li> SSO plugin that are able to do Just In  Time provisionning </li>
+      <li> SSO plugin that are able to do Just In Time provisionning </li>
          <ul>
             <li> SAML </li>
             <li> Shibboleth </li>
@@ -44,7 +44,7 @@
       
       The contributed class has to implement the UserMapper interface.
       
-      You can also contribute the implementation via a groovy script, in this case, simply ommit the class attribute and add a script tag:
+      You can also contribute the implementation via a groovy script, in this case, simply omit the class attribute and add a script tag:
        
       <code>
       

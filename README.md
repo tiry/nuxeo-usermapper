@@ -43,12 +43,13 @@ A simple option would be to have a mapping that is configured using a Groovy scr
 At least for SCIM use cases, the Service needs to handle 2 ways :
 
 
-     getCreateOrUpdateNuxeoPrinciple(String mappingName, Object user)
+     getCreateOrUpdateNuxeoPrinciple(String mappingName, Object user) 
+
+This API will be used to create / update a Nuxeo Principal based on SCIM user object.
 
      Object wrapNuxeoPrincipal(String mappingName, NuxeoPrincipal principal)
 
-
-This means that the service can simply rely on 2 extension points for contribution a groovy script for each ways.
+Get the SCIM representation of a Nuxeo User.
 
 ## Building / Install
 

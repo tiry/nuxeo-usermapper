@@ -25,17 +25,22 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.nuxeo.ecm.core.api.ClientException;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DataModel;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
+import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.ecm.user.center.profile.UserProfileService;
 import org.nuxeo.runtime.api.Framework;
 
 /**
  * Provide default implementation for interaction with the {@link UserManager}.
- * 
- * @author tiry
  *
+ * @author tiry
  */
 public abstract class AbstractUserMapper implements UserMapper {
 
@@ -51,21 +56,23 @@ public abstract class AbstractUserMapper implements UserMapper {
     public NuxeoPrincipal getCreateOrUpdateNuxeoPrincipal(Object userObject) {
 
         DocumentModel userModel = null;
-        Map<String, Serializable> attributes = new HashMap<String, Serializable>();
-        getUserAttributes(userObject, attributes);
 
-        String userId = (String) attributes.get(userManager.getUserIdField());
+        Map<String, Serializable> searchAttributes = new HashMap<String, Serializable>();
+        Map<String, Serializable> userAttributes = new HashMap<String, Serializable>();
+        final Map<String, Serializable> profileAttributes = new HashMap<String, Serializable>();
+
+        resolveAttributes(userObject, searchAttributes, userAttributes, profileAttributes);
+
+        String userId = (String) searchAttributes.get(userManager.getUserIdField());
 
         if (userId != null) {
             userModel = userManager.getUserModel(userId);
         }
         if (userModel == null) {
-            if (attributes.size() > 0) {
-                DocumentModelList userDocs = userManager.searchUsers(
-                        attributes, Collections.<String> emptySet());
+            if (searchAttributes.size() > 0) {
+                DocumentModelList userDocs = userManager.searchUsers(searchAttributes, Collections.<String> emptySet());
                 if (userDocs.size() > 1) {
-                    log.warn("Can not map user with filter "
-                            + attributes.toString() + " : too many results");
+                    log.warn("Can not map user with filter " + searchAttributes.toString() + " : too many results");
                 }
                 if (userDocs.size() == 1) {
                     userModel = userDocs.get(0);
@@ -73,9 +80,31 @@ public abstract class AbstractUserMapper implements UserMapper {
             }
         }
         if (userModel != null) {
-            updatePrincipal(attributes, userModel);
+            updatePrincipal(userAttributes, userModel);
         } else {
-            userModel = createPrincipal(attributes);
+            for (String k : searchAttributes.keySet() ) {
+                if (!userAttributes.containsKey(k)) {
+                    userAttributes.put(k, searchAttributes.get(k));
+                }
+            }
+            userModel = createPrincipal(userAttributes);
+        }
+
+        if (userModel != null && profileAttributes.size() > 0) {
+            UserProfileService UPS = Framework.getService(UserProfileService.class);
+            if (UPS != null) {
+
+                final String login = (String) userModel.getPropertyValue(userManager.getUserIdField());
+
+                String repoName = Framework.getService(RepositoryManager.class).getDefaultRepositoryName();
+                new UnrestrictedSessionRunner(repoName) {
+                    @Override
+                    public void run() throws ClientException {
+                        DocumentModel profile = UPS.getUserProfileDocument(login, session);
+                        updateProfile(session, profileAttributes, profile);
+                    }
+                }.runUnrestricted();
+            }
         }
 
         if (userModel != null) {
@@ -85,24 +114,30 @@ public abstract class AbstractUserMapper implements UserMapper {
         return null;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected void updatePrincipal(Map<String, Serializable> attributes,
-            DocumentModel userModel) {
-        userModel.getDataModel(userManager.getUserSchemaName()).setMap(
-                (Map) attributes);
+    protected void updatePrincipal(Map<String, Serializable> attributes, DocumentModel userModel) {
+        DataModel dm = userModel.getDataModel(userManager.getUserSchemaName());
+        for (String key : attributes.keySet()) {
+            dm.setValue(key, attributes.get(key));
+        }
         userManager.updateUser(userModel);
+    }
+
+    protected void updateProfile(CoreSession session, Map<String, Serializable> attributes, DocumentModel userProfile) {
+        for (String key : attributes.keySet()) {
+            userProfile.setPropertyValue(key, attributes.get(key));
+        }
+        session.saveDocument(userProfile);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected DocumentModel createPrincipal(Map<String, Serializable> attributes) {
 
         DocumentModel userModel = userManager.getBareUserModel();
-        userModel.getDataModel(userManager.getUserSchemaName()).setMap(
-                (Map) attributes);
+        userModel.getDataModel(userManager.getUserSchemaName()).setMap((Map) attributes);
         return userManager.createUser(userModel);
     }
 
-    protected abstract void getUserAttributes(Object userObject,
-            Map<String, Serializable> attributes);
+    protected abstract void resolveAttributes(Object userObject, Map<String, Serializable> searchAttributes,
+            Map<String, Serializable> userAttributes, Map<String, Serializable> profileAttributes);
 
 }
